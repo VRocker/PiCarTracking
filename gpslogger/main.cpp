@@ -5,6 +5,7 @@
 #include "SerialHandler.h"
 #include "NmeaParser.h"
 #include "nmea/GprmcMessage.h"
+#include "nmea/GpggaMessage.h"
 
 static bool g_isRunning = true;
 
@@ -98,6 +99,14 @@ int main(int argc, char* argv[])
 					printf("Has fix.\n");
 				else
 					printf("No fix :(\n");
+			}
+			break;
+
+			case NmeaType::GGA:
+			{
+				// GPGGA String
+				GpggaMessage* ggaMsg = (GpggaMessage*)msg;
+				printf("Sats in view: %u", ggaMsg->SatsInView());
 			}
 			break;
 			}

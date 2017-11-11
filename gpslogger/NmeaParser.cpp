@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "nmea/GprmcMessage.h"
+#include "nmea/GpggaMessage.h"
 
 INmeaMessage* NmeaParser::ParseMessage(char* msg)
 {
@@ -59,6 +60,11 @@ INmeaMessage* NmeaParser::ParseMessage(char* msg)
 	else if (str_equal(token, "$GPGGA"))
 	{
 		// GPGGA String
+		GpggaMessage* tmp = new GpggaMessage();
+		if (tmp->Parse(context))
+			ret = tmp;
+		else
+			delete tmp;
 	}
 	else if (str_equal(token, "$GPGSA"))
 	{
