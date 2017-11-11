@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include "../shared/Logger.h"
 #include "SerialHandler.h"
+#include "NmeaParser.h"
+#include "nmea/GprmcMessage.h"
+
 static bool g_isRunning = true;
 
 void exited()
@@ -77,6 +80,31 @@ int main(int argc, char* argv[])
 			SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
 		} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
 		msgbuf[i] = 0;
+
+		printf("%s", msgbuf);
+
+		// Parse the message
+		INmeaMessage* msg = NmeaParser::ParseMessage(msgbuf);
+		if (msg)
+		{
+			// Do stuff
+			switch (msg->GetType())
+			{
+			case NmeaType::RMC:
+			{
+				// GPRMC String
+				GprmcMessage* rmcMsg = (GprmcMessage*)msg;
+				if (rmcMsg->HasFix())
+					printf("Has fix.\n");
+				else
+					printf("No fix :(\n");
+			}
+			break;
+			}
+
+			delete msg;
+			msg = nullptr;
+		}
 	}
 
 	return 0;

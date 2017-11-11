@@ -59,6 +59,8 @@ extern "C" {
 	*/
 	unsigned int isnum(const char* str);
 
+	unsigned char hex_to_byte(const char c);
+
 #ifdef __cplusplus
 }
 #endif
