@@ -1,4 +1,4 @@
-SUBDIRS = 
+SUBDIRS = gpslogger
 
 export BUILDROOTDIR = $(CURDIR)/buildroot
 export SKELDIR = 	$(CURDIR)/skel
