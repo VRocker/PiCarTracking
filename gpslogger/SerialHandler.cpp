@@ -71,3 +71,11 @@ bool SerialHandler::ReadPort(char* buffer, unsigned int bytes)
 
 	return true;
 }
+
+void SerialHandler::FlushPort(void)
+{
+	if (m_fd == -1)
+		return;
+
+	tcflush(m_fd, TCIFLUSH);
+}

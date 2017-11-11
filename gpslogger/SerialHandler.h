@@ -12,6 +12,7 @@ public:
 	void ClosePort();
 
 	bool ReadPort(char* buffer, unsigned int bytes);
+	void FlushPort(void);
 
 private:
 	int m_fd;

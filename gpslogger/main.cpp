@@ -58,6 +58,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// Flush the port so we don't end up with old crap
+	SerialHandler::GetSingleton()->FlushPort();
+
 	char msgbuf[128] = { 0 };
 	unsigned int i = 0;
 
