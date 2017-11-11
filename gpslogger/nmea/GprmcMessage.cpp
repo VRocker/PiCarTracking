@@ -18,7 +18,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_UTCTime = atof(token);
+			m_UTCTime = (float)atof(token);
 	}
 	else
 		context++;
@@ -31,7 +31,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_latitude = atof(token);
+			m_latitude = (float)atof(token);
 	}
 	else
 		context++;
@@ -49,7 +49,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_longitude = atof(token);
+			m_longitude = (float)atof(token);
 	}
 	else
 		context++;
@@ -67,7 +67,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_speed = atof(token);
+			m_speed = (float)atof(token);
 	}
 	else
 		context++;
@@ -76,7 +76,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_heading = atof(token);
+			m_heading = (float)atof(token);
 	}
 	else
 		context++;

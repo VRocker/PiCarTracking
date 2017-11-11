@@ -14,6 +14,14 @@ public:
 
 	bool Parse(char* msg);
 
+public:
+	float Timestamp() const { return m_UTCTime; }
+	float Longitude() const { return m_longitude; }
+	char LongitudeDirection() const { return m_ew; }
+	float Latitude() const { return m_latitude; }
+	char LatitudeDirection() const { return m_ns; }
+	float Speed() const { return m_speed; }
+	float Heading() const { return m_heading; }
 	bool HasFix() const { return m_fix == 'A'; }
 
 private:
@@ -25,6 +33,6 @@ private:
 	unsigned long m_date;
 	char m_fix;
 	char m_ns;
-	float m_ew;
+	char m_ew;
 };
 
