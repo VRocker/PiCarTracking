@@ -43,7 +43,7 @@ INmeaMessage* NmeaParser::ParseMessage(char* msg)
 	{
 		// GPRMC String
 		GprmcMessage* tmp = new GprmcMessage();
-		if (tmp->Parse(context + 1))
+		if (tmp->Parse(context))
 			ret = tmp;
 		else
 			delete tmp;

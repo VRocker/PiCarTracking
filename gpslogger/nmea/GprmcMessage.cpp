@@ -1,5 +1,6 @@
 #include "GprmcMessage.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "../../shared/strutils.h"
 
 bool GprmcMessage::Parse(char* msg)
@@ -7,52 +8,85 @@ bool GprmcMessage::Parse(char* msg)
 	printf("Parsing GPRMC string... [%s]\n", msg);
 
 	size_t tokens = numtok(msg, ',');
-	printf("Tokens: %u\n", tokens);
-	if (tokens != 11)
+	if (tokens != 12)
 		return false;
 
 	char* token = nullptr;
-	char* context = nullptr;
+	char* context = msg;
 
-	token = (char*)safe_strtok(msg, ',', &context);
-	if (!token)
-		return false;
-		
-	sscanf(token, "%f", &m_UTCTime);
-
-	token = (char*)safe_strtok(0, ',', &context);
-	if (!token)
-		return false;
-		
-	m_fix = *token;
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_UTCTime = atof(token);
+	}
+	else
+		context++;
 
 	token = (char*)safe_strtok(0, ',', &context);
 	if (token)
-		sscanf(token, "%f", &m_latitude);
+		m_fix = *token;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		m_ns = *token;
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_latitude = atof(token);
+	}
+	else
+		context++;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		sscanf(token, "%f", &m_longitude);
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_ns = *token;
+	}
+	else
+		context++;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		m_ew = *token;
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_longitude = atof(token);
+	}
+	else
+		context++;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		sscanf(token, "%f", &m_speed);
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_ew = *token;
+	}
+	else
+		context++;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		sscanf(token, "%f", &m_heading);
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_speed = atof(token);
+	}
+	else
+		context++;
 
-	token = (char*)safe_strtok(0, ',', &context);
-	if (token)
-		sscanf(token, "%lu", &m_date);
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_heading = atof(token);
+	}
+	else
+		context++;
+
+	if (*context != ',')
+	{
+		token = (char*)safe_strtok(0, ',', &context);
+		if (token)
+			m_date = atol(token);
+	}
 
 	return true;
 }
