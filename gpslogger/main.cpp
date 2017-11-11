@@ -3,9 +3,13 @@
 #include <unistd.h>
 #include "../shared/Logger.h"
 #include "SerialHandler.h"
+static bool g_isRunning = true;
 
 void exited()
 {
+	Logger::GetSingleton()->Write("Shutting down serial handler...", LogLevel::Information);
+	SerialHandler::CleanupSingleton();
+
 	Logger::GetSingleton()->Write("Terminating.", LogLevel::Information);
 	Logger::CleanupSingleton();
 }
@@ -13,7 +17,7 @@ void exited()
 void sig_handler(int signum)
 {
 	if ((signum == SIGTERM) || (signum == SIGINT))
-		exit(1);
+		g_isRunning = false;
 }
 
 void daemonise(void)
@@ -64,11 +68,16 @@ int main(int argc, char* argv[])
 	char msgbuf[128] = { 0 };
 	unsigned int i = 0;
 
-	// Read the string byte by byte until we find a \r\n, then parse
-	do
+	while (g_isRunning)
 	{
-		SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
-	} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
-	msgbuf[i] = 0;
+		// Read the string byte by byte until we find a \r\n, then parse
+		i = 0;
+		do
+		{
+			SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
+		} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
+		msgbuf[i] = 0;
+	}
+
 	return 0;
 }
