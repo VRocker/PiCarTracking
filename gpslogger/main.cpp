@@ -6,6 +6,7 @@
 #include "NmeaParser.h"
 #include "nmea/GprmcMessage.h"
 #include "nmea/GpggaMessage.h"
+#include "NtpUpdater.h"
 
 static bool g_isRunning = true;
 
@@ -96,7 +97,12 @@ int main(int argc, char* argv[])
 				// GPRMC String
 				GprmcMessage* rmcMsg = (GprmcMessage*)msg;
 				if (rmcMsg->HasFix())
+				{
 					printf("Has fix.\n");
+
+					// Update the NTP shared memory segment
+					NtpUpdater::GetSingleton()->SetNTPTime(rmcMsg->Date(), rmcMsg->Timestamp());
+				}
 				else
 					printf("No fix :(\n");
 			}

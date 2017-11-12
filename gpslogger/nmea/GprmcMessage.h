@@ -23,6 +23,7 @@ public:
 	float Speed() const { return m_speed; }
 	float Heading() const { return m_heading; }
 	bool HasFix() const { return m_fix == 'A'; }
+	unsigned int Date() const { return m_date; }
 
 private:
 	float m_UTCTime;
