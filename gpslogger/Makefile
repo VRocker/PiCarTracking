@@ -1,4 +1,4 @@
-OBJS=main.o SerialHandler.o ../shared/Logger.o ../shared/strutils.o NmeaParser.o nmea/GprmcMessage.o nmea/GpggaMessage.o
+OBJS=main.o SerialHandler.o ../shared/Logger.o ../shared/strutils.o NmeaParser.o nmea/GprmcMessage.o nmea/GpggaMessage.o NtpUpdater.o
 BIN=gpslogger.bin
 
 CFLAGS+=-std=c99
