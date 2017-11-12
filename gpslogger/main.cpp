@@ -12,6 +12,9 @@ static bool g_isRunning = true;
 
 void exited()
 {
+	Logger::GetSingleton()->Write("Shutting down NTP updater...", LogLevel::Information);
+	NtpUpdater::CleanupSingleton();
+
 	Logger::GetSingleton()->Write("Shutting down serial handler...", LogLevel::Information);
 	SerialHandler::CleanupSingleton();
 
