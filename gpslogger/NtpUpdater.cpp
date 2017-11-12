@@ -16,6 +16,11 @@ NtpUpdater::NtpUpdater()
 
 NtpUpdater::~NtpUpdater()
 {
+	if (m_shmUnit)
+	{
+		shmdt(m_shmUnit);
+		m_shmUnit = nullptr;
+	}
 }
 
 void NtpUpdater::SetNTPTime(unsigned long date, float time)
