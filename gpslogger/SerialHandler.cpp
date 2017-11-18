@@ -6,18 +6,20 @@
 #include <unistd.h>
 #include "../shared/strutils.h"
 #include "../shared/Logger.h"
+#include <sys/timepps.h>
 
 template<>
 SerialHandler* ISingleton< SerialHandler >::m_singleton = nullptr;
 
 SerialHandler::SerialHandler()
-	: m_fd(-1), m_ppsHandle(-1)
+	: m_fd(-1), m_ppsFd(-1), m_ppsHandle(-1)
 {
 }
 
 
 SerialHandler::~SerialHandler()
 {
+	ClosePPSPort();
 	ClosePort();
 }
 
@@ -61,6 +63,52 @@ void SerialHandler::ClosePort()
 	}
 }
 
+bool SerialHandler::OpenPPSPort(const char* device)
+{
+	char name[32] = { 0 };
+
+	if (*device != '/')
+	{
+		strcpy(name, "/dev/");
+		str_cat(name, device, sizeof(name));
+	}
+	else
+		str_cpy(name, device, sizeof(name));
+
+	int tmpFd = -1;
+	if ((tmpFd = open(name, (O_RDWR | O_NOCTTY | O_NONBLOCK))) < 0)
+	{
+		Logger::GetSingleton()->Write("Unable to open pps port %s.", LogLevel::Error, name);
+		return false;
+	}
+
+	m_ppsFd = tmpFd;
+
+	if (time_pps_create(m_ppsFd, &m_ppsHandle) < 0)
+	{
+		Logger::GetSingleton()->Write("Failed to create PPS device.", LogLevel::Error);
+		ClosePPSPort();
+		return false;
+	}
+
+	return true;
+}
+
+void SerialHandler::ClosePPSPort()
+{
+	if (m_ppsHandle != -1)
+	{
+		time_pps_destroy(m_ppsHandle);
+		m_ppsHandle = -1;
+	}
+
+	if (m_ppsFd != -1)
+	{
+		close(m_ppsFd);
+		m_ppsFd = -1;
+	}
+}
+
 bool SerialHandler::ReadPort(char* buffer, unsigned int bytes)
 {
 	if (m_fd == -1)
@@ -78,4 +126,18 @@ void SerialHandler::FlushPort(void)
 		return;
 
 	tcflush(m_fd, TCIFLUSH);
+}
+
+bool SerialHandler::WaitForPPS()
+{
+	pps_info_t ppsInfo;
+	struct timespec timeout;
+
+	timeout.tv_sec = 1;
+	timeout.tv_nsec = 0;
+
+	if (time_pps_fetch(m_ppsHandle, PPS_TSFMT_TSPEC, &ppsInfo, &timeout) < 0)
+		return false;
+
+	return true;
 }

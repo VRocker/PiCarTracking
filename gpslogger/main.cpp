@@ -70,6 +70,14 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	Logger::GetSingleton()->Write("Opening PPS port...", LogLevel::Information);
+
+	if (!SerialHandler::GetSingleton()->OpenPPSPort("/dev/pps0"))
+	{
+		Logger::GetSingleton()->Write("Failed to open PPS port. Exiting...", LogLevel::Error);
+		return 1;
+	}
+
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
@@ -103,8 +111,12 @@ int main(int argc, char* argv[])
 				{
 					printf("Has fix.\n");
 
-					// Update the NTP shared memory segment
-					NtpUpdater::GetSingleton()->SetNTPTime(rmcMsg->Date(), rmcMsg->Timestamp());
+					if (SerialHandler::GetSingleton()->WaitForPPS())
+					{
+						printf("Setting time...\n");
+						// Update the NTP shared memory segment
+						NtpUpdater::GetSingleton()->SetNTPTime(rmcMsg->Date(), rmcMsg->Timestamp());
+					}
 				}
 				else
 					printf("No fix :(\n");
