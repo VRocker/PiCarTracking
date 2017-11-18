@@ -1,4 +1,4 @@
-SUBDIRS = gpslogger
+SUBDIRS = gpslogger UPSPico
 
 export BUILDROOTDIR = $(CURDIR)/buildroot
 export SKELDIR = 	$(CURDIR)/skel
