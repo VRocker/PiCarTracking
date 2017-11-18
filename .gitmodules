@@ -1,3 +1,6 @@
 [submodule "buildroot"]
 	path = buildroot
 	url = git://git.buildroot.net/buildroot
+[submodule "UPSPico"]
+	path = UPSPico
+	url = git@github.com:VRocker/UPSPico.git
