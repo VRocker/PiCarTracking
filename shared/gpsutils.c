@@ -21,7 +21,7 @@ void convertNMEAToLatLon(float nmeaLat, char ns, float nmeaLon, char ew, float* 
 
 	if (ns == 'S')
 		newLat = -newLat;
-	if (ew == 'E')
+	if (ew == 'W')
 		newLon = -newLon;
 
 	*outLat = newLat;
