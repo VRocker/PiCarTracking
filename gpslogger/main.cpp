@@ -7,8 +7,12 @@
 #include "nmea/GprmcMessage.h"
 #include "nmea/GpggaMessage.h"
 #include "NtpUpdater.h"
+#include "../shared/locationshm.h"
+#include "../shared/gpsutils.h"
 
 static bool g_isRunning = true;
+
+static shmLocation* g_locationShm = nullptr;
 
 void exited()
 {
@@ -78,6 +82,15 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	Logger::GetSingleton()->Write("Opening shared memory segment for location data...", LogLevel::Information);
+
+	g_locationShm = getShmLocation(LocationUnitIDs::GPS);
+	if (!g_locationShm)
+	{
+		Logger::GetSingleton()->Write("Failed to open shared memory segment for GPS location data.", LogLevel::Error);
+		return 1;
+	}
+
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
@@ -111,6 +124,14 @@ int main(int argc, char* argv[])
 				{
 					printf("Has fix.\n");
 
+					{
+						float lat = 0.0f, lon = 0.0f;
+						convertNMEAToLatLon(rmcMsg->Latitude(), rmcMsg->LatitudeDirection(), rmcMsg->Longitude(), rmcMsg->LongitudeDirection(), &lat, &lon);
+						addLocation(g_locationShm, lat, lon, rmcMsg->Speed());
+
+						printf("Setting location data to Lat: %f, Lon: %f", lat, lon);
+					}
+
 					if (SerialHandler::GetSingleton()->WaitForPPS())
 					{
 						printf("Setting time...\n");
@@ -128,6 +149,7 @@ int main(int argc, char* argv[])
 				// GPGGA String
 				GpggaMessage* ggaMsg = (GpggaMessage*)msg;
 				printf("Sats in view: %u", ggaMsg->SatsInView());
+
 			}
 			break;
 			}
