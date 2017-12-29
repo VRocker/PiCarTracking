@@ -85,7 +85,7 @@ bool GprmcMessage::Parse(char* msg)
 	{
 		token = (char*)safe_strtok(0, ',', &context);
 		if (token)
-			m_date = atol(token);
+			m_date = (unsigned int)atol(token);
 	}
 
 	return true;

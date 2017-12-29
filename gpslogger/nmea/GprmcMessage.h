@@ -31,7 +31,7 @@ private:
 	float m_latitude;
 	float m_speed;
 	float m_heading;
-	unsigned long m_date;
+	unsigned int m_date;
 	char m_fix;
 	char m_ns;
 	char m_ew;
