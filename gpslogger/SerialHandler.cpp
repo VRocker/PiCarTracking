@@ -114,8 +114,11 @@ bool SerialHandler::ReadPort(char* buffer, unsigned int bytes)
 	if (m_fd == -1)
 		return false;
 
-	if (read(m_fd, buffer, bytes) == -1)
-		return false;
+	for (unsigned int i = 0; i < bytes; i++)
+	{
+		if (read(m_fd, buffer + i, 1) == -1)
+			return false;
+	}
 
 	return true;
 }

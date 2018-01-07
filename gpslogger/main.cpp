@@ -148,17 +148,20 @@ int main(int argc, char* argv[])
 	while (g_isRunning)
 	{
 		// Read the string byte by byte until we find a \r\n, then parse
-		i = 0;
-		do
-		{
-			SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
-		} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
-		msgbuf[i] = 0;
+		// Read the first byte to determine what message this is
+		SerialHandler::GetSingleton()->ReadPort(msgbuf, 1);
 
 		//printf("%s", msgbuf);
 
 		if (*msgbuf == '$')
 		{
+			i = 1;
+			do
+			{
+				SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
+			} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
+			msgbuf[i] = 0;
+
 			// Parse the message
 			INmeaMessage* msg = NmeaParser::ParseMessage(msgbuf);
 			if (msg)
@@ -213,12 +216,23 @@ int main(int argc, char* argv[])
 				msg = nullptr;
 			}
 		}
-		else
+		else if (*msgbuf == 0xB5)
 		{
-			if (*msgbuf == 0xB5)
+			// Received UBX message
+			// Read 6 bytes to construct the header
+			// Read payload_length bytes to get the payload
+			// Read 2 bytes to get the checksum
+			SerialHandler::GetSingleton()->ReadPort(msgbuf + 1, 1);
+			if (msgbuf[1] == 0x62)
 			{
-				// Received UBX message
-				ublox::Ublox::GetSingleton()->ParseUbloxMessage(msgbuf, i);
+				// Make sure its definately a UBX packet
+				// Read the rest of the header
+				SerialHandler::GetSingleton()->ReadPort(msgbuf + 2, 4);
+				uint16_t payloadLen = *(uint16_t*)(msgbuf + 4);
+				SerialHandler::GetSingleton()->ReadPort(msgbuf + 6, payloadLen + 2);
+
+				// We add 8 bytes on for the header and checksum bytes
+				ublox::Ublox::GetSingleton()->ParseUbloxMessage(msgbuf, payloadLen + 8);
 			}
 		}
 	}
