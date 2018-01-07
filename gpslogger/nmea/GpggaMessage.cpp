@@ -8,7 +8,7 @@
 
 bool GpggaMessage::Parse(char* msg)
 {
-	printf("Parsing GPGGA string... [%s]\n", msg);
+	//printf("Parsing GPGGA string... [%s]\n", msg);
 
 	size_t tokens = numtok(msg, ',');
 	if (tokens != 13)

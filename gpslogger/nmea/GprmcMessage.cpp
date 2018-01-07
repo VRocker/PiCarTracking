@@ -5,7 +5,7 @@
 
 bool GprmcMessage::Parse(char* msg)
 {
-	printf("Parsing GPRMC string... [%s]\n", msg);
+	//printf("Parsing GPRMC string... [%s]\n", msg);
 
 	size_t tokens = numtok(msg, ',');
 	if (tokens != 12)
