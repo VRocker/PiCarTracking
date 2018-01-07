@@ -36,7 +36,7 @@ bool SerialHandler::OpenPort(const char* device)
 		str_cpy(name, device, sizeof(name));
 
 	int tmpFd = -1;
-	if ((tmpFd = open(name, O_RDONLY | O_NOCTTY)) < 0)
+	if ((tmpFd = open(name, O_RDWR | O_NOCTTY)) < 0)
 	{
 		Logger::GetSingleton()->Write("Unable to open port %s.", LogLevel::Error, name);
 		return false;
@@ -115,6 +115,17 @@ bool SerialHandler::ReadPort(char* buffer, unsigned int bytes)
 		return false;
 
 	if (read(m_fd, buffer, bytes) == -1)
+		return false;
+
+	return true;
+}
+
+bool SerialHandler::WritePort(char* buffer, unsigned int bytes)
+{
+	if (m_fd == -1)
+		return false;
+
+	if (write(m_fd, buffer, bytes) == -1)
 		return false;
 
 	return true;

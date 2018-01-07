@@ -15,6 +15,7 @@ public:
 	void ClosePPSPort();
 
 	bool ReadPort(char* buffer, unsigned int bytes);
+	bool WritePort(char* buffer, unsigned int bytes);
 	void FlushPort(void);
 
 	bool WaitForPPS();
