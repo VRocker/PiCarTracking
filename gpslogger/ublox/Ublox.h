@@ -5,6 +5,11 @@
 
 namespace ublox
 {
+#pragma region Callback definitions
+	typedef void (*AidIniCallback)(AidIni& iniMsg);
+
+#pragma endregion
+
 	class Ublox : public ISingleton<Ublox>
 	{
 	public:
@@ -15,11 +20,17 @@ namespace ublox
 
 		void ParseUbloxMessage(char* msgBuffer, size_t msgLength);
 
+	public:
+		void SetCallbackAidIni(AidIniCallback callback) { m_callbackAidIni = callback; }
+
 	private:
 		void CalculateChecksum(uint8_t* in, size_t len, uint8_t* out);
 
 	private:
 		void ParseAidIniMessage(char* msgBuffer, size_t msgLength);
+
+	private:
+		AidIniCallback m_callbackAidIni;
 	};
 
 };

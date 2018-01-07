@@ -100,6 +100,9 @@ namespace ublox
 		printf("clock_drift_or_freq: %u\n", iniMessage.clock_drift_or_freq);
 		printf("clock_drift_or_freq_accuracy: %u\n", iniMessage.clock_drift_or_freq_accuracy);
 		printf("flags: %u\n", iniMessage.flags);
+
+		if (m_callbackAidIni)
+			m_callbackAidIni(iniMessage);
 	}
 
 }
