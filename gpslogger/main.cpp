@@ -9,13 +9,22 @@
 #include "NtpUpdater.h"
 #include "../shared/locationshm.h"
 #include "../shared/gpsutils.h"
+#include <pthread.h>
 
 static bool g_isRunning = true;
 
 static shmLocation* g_locationShm = nullptr;
+static pthread_t g_ppsThread = -1;
 
 void exited()
 {
+	if (g_ppsThread != -1)
+	{
+		Logger::GetSingleton()->Write("Waiting for PPS thread to exit...", LogLevel::Information);
+		void* status = 0;
+		pthread_join(g_ppsThread, &status);
+	}
+
 	Logger::GetSingleton()->Write("Shutting down NTP updater...", LogLevel::Information);
 	NtpUpdater::CleanupSingleton();
 
@@ -48,6 +57,32 @@ void daemonise(void)
 		Logger::GetSingleton()->Write("Entering daemon mode.", LogLevel::Information);
 		setsid();
 	}
+}
+
+GprmcMessage* g_rmcMsg = nullptr;
+volatile bool g_rmcMessageValid = false;
+
+void* ppsThread(void* threadId)
+{
+	while (g_isRunning)
+	{
+		if (SerialHandler::GetSingleton()->WaitForPPS())
+		{
+			if ((g_rmcMessageValid) && (g_rmcMsg))
+			{
+				printf("[2] Setting time to %u - %f...\n", g_rmcMsg->Date(), g_rmcMsg->Timestamp());
+				// Update the NTP shared memory segment
+				NtpUpdater::GetSingleton()->SetNTPTime(g_rmcMsg->Date(), g_rmcMsg->Timestamp());
+
+				g_rmcMessageValid = false;
+
+				delete g_rmcMsg;
+				g_rmcMsg = nullptr;
+			}
+		}
+	}
+
+	pthread_exit(0);
 }
 
 int main(int argc, char* argv[])
@@ -93,6 +128,13 @@ int main(int argc, char* argv[])
 
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
+
+	// Setup PPS thread
+	if (pthread_create(&g_ppsThread, NULL, ppsThread, NULL) > 0)
+	{
+		Logger::GetSingleton()->Write("Failed to setup PPS thread. Exiting...", LogLevel::Error);
+		return 1;
+	}
 
 	char msgbuf[128] = { 0 };
 	unsigned int i = 0;
