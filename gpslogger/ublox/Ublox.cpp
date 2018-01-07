@@ -44,11 +44,8 @@ namespace ublox
 	{
 		if (msgLength > 6)
 		{
-			printf("Parsing Ublox message. Length: %u\n", msgLength);
 			UBloxHeader header;
 			memcpy(&header, msgBuffer, 6);
-
-			printf("Actual length: %u\n", header.payloadLength);
 
 			if ((header.sync1 == UBX_SYNC_BYTE_1) && (header.sync2 == UBX_SYNC_BYTE_2))
 			{
