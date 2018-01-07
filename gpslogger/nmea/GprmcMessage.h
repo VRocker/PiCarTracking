@@ -12,6 +12,13 @@ public:
 		m_type = NmeaType::RMC;
 	}
 
+	GprmcMessage(const GprmcMessage &other)
+		: m_UTCTime(other.m_UTCTime), m_longitude(other.m_longitude), m_latitude(other.m_latitude), m_speed(other.m_speed), m_heading(other.m_heading),
+		m_date(other.m_date), m_fix(other.m_fix), m_ns(other.m_ns), m_ew(other.m_ew)
+	{
+		m_type = other.m_type;
+	}
+
 	bool Parse(char* msg);
 
 public:
