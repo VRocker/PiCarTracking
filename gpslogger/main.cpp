@@ -10,6 +10,7 @@
 #include "../shared/locationshm.h"
 #include "../shared/gpsutils.h"
 #include <pthread.h>
+#include "ublox/Ublox.h"
 
 static bool g_isRunning = true;
 
@@ -129,6 +130,11 @@ int main(int argc, char* argv[])
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
+	ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
+
+	char somebuf[128] = { 0 };
+	SerialHandler::GetSingleton()->ReadPort(somebuf, sizeof(somebuf));
+
 	// Setup PPS thread
 	if (pthread_create(&g_ppsThread, NULL, ppsThread, NULL) > 0)
 	{
@@ -149,55 +155,71 @@ int main(int argc, char* argv[])
 		} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
 		msgbuf[i] = 0;
 
-		printf("%s", msgbuf);
+		//printf("%s", msgbuf);
 
-		// Parse the message
-		INmeaMessage* msg = NmeaParser::ParseMessage(msgbuf);
-		if (msg)
+		if (*msgbuf == '$')
 		{
-			// Do stuff
-			switch (msg->GetType())
+			// Parse the message
+			INmeaMessage* msg = NmeaParser::ParseMessage(msgbuf);
+			if (msg)
 			{
-			case NmeaType::RMC:
-			{
-				// GPRMC String
-				GprmcMessage* rmcMsg = (GprmcMessage*)msg;
-				if (rmcMsg->HasFix())
+				// Do stuff
+				switch (msg->GetType())
 				{
-					printf("Has fix.\n");
-
+				case NmeaType::RMC:
+				{
+					// GPRMC String
+					GprmcMessage* rmcMsg = (GprmcMessage*)msg;
+					if (rmcMsg->HasFix())
 					{
-						float lat = 0.0f, lon = 0.0f;
-						convertNMEAToLatLon(rmcMsg->Latitude(), rmcMsg->LatitudeDirection(), rmcMsg->Longitude(), rmcMsg->LongitudeDirection(), &lat, &lon);
-						addLocation(g_locationShm, lat, lon, rmcMsg->Speed());
+						{
+							float lat = 0.0f, lon = 0.0f;
+							convertNMEAToLatLon(rmcMsg->Latitude(), rmcMsg->LatitudeDirection(), rmcMsg->Longitude(), rmcMsg->LongitudeDirection(), &lat, &lon);
+							addLocation(g_locationShm, lat, lon, rmcMsg->Speed());
 
-						printf("Setting location data to Lat: %f, Lon: %f", lat, lon);
-					}
+							printf("Setting location data to Lat: %f, Lon: %f\n", lat, lon);
+						}
 
-					if (SerialHandler::GetSingleton()->WaitForPPS())
-					{
-						printf("Setting time...\n");
-						// Update the NTP shared memory segment
-						NtpUpdater::GetSingleton()->SetNTPTime(rmcMsg->Date(), rmcMsg->Timestamp());
+						if ((!g_rmcMsg) && (!g_rmcMessageValid))
+						{
+							printf("[1] Setting time to %u - %f...\n", rmcMsg->Date(), rmcMsg->Timestamp());
+							g_rmcMsg = new GprmcMessage(*rmcMsg);
+							g_rmcMessageValid = true;
+						}
+
+						/*if (SerialHandler::GetSingleton()->WaitForPPS())
+						{
+							printf("Setting time...\n");
+							// Update the NTP shared memory segment
+							NtpUpdater::GetSingleton()->SetNTPTime(rmcMsg->Date(), rmcMsg->Timestamp());
+						}*/
 					}
+					else
+						printf("No fix :(\n");
 				}
-				else
-					printf("No fix :(\n");
-			}
-			break;
+				break;
 
-			case NmeaType::GGA:
+				case NmeaType::GGA:
+				{
+					// GPGGA String
+					GpggaMessage* ggaMsg = (GpggaMessage*)msg;
+					printf("Sats in view: %u\n", ggaMsg->SatsInView());
+
+				}
+				break;
+				}
+
+				delete msg;
+				msg = nullptr;
+			}
+		}
+		else
+		{
+			if (*msgbuf == 0xB5)
 			{
-				// GPGGA String
-				GpggaMessage* ggaMsg = (GpggaMessage*)msg;
-				printf("Sats in view: %u", ggaMsg->SatsInView());
-
+				// Received UBX message
+				ublox::Ublox::GetSingleton()->ParseUbloxMessage(msgbuf, i);
 			}
-			break;
-			}
-
-			delete msg;
-			msg = nullptr;
 		}
 	}
 
