@@ -15,11 +15,11 @@
 static bool g_isRunning = true;
 
 static shmLocation* g_locationShm = nullptr;
-static pthread_t g_ppsThread = -1;
+static pthread_t g_ppsThread = 0;
 
 void exited()
 {
-	if (g_ppsThread != -1)
+	if (g_ppsThread != 0)
 	{
 		Logger::GetSingleton()->Write("Waiting for PPS thread to exit...", LogLevel::Information);
 		void* status = 0;
@@ -130,10 +130,7 @@ int main(int argc, char* argv[])
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
-	ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
-
-	char somebuf[128] = { 0 };
-	SerialHandler::GetSingleton()->ReadPort(somebuf, sizeof(somebuf));
+	//ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
 
 	// Setup PPS thread
 	if (pthread_create(&g_ppsThread, NULL, ppsThread, NULL) > 0)
@@ -210,6 +207,12 @@ int main(int argc, char* argv[])
 
 				}
 				break;
+
+				default:
+				{
+
+				}
+
 				}
 
 				delete msg;
