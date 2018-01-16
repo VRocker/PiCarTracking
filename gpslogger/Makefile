@@ -1,4 +1,4 @@
-OBJS=main.o SerialHandler.o ../shared/Logger.o ../shared/strutils.o ../shared/gpsutils.o ../shared/locationshm.o NmeaParser.o nmea/GprmcMessage.o nmea/GpggaMessage.o ublox/Ublox.o NtpUpdater.o
+OBJS=main.o SerialHandler.o ../shared/Logger.o ../shared/strutils.o ../shared/gpsutils.o ../shared/locationshm.o NmeaParser.o nmea/GprmcMessage.o nmea/GpggaMessage.o ublox/Ublox.o NtpUpdater.o FileWriter.o
 LIBS=-lpthread
 BIN=gpslogger.bin
 
