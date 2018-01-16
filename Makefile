@@ -27,6 +27,14 @@ all:
 	(cd $(BUILDROOTDIR);make)
 	cp buildroot/output/images/zImage .
 
+noroot:
+	rm -rf $(OUTPUTDIR)/bin/*
+	mkdir -p $(OUTBINDIR)
+	mkdir -p $(OUTLIBDIR)
+	for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) clean && $(MAKE)) \
+	done;
+
 setup:
 	./checkconfig.sh
 	(cd $(BUILDROOTDIR);make)

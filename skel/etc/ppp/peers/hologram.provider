@@ -1,0 +1,7 @@
+noipdefault
+usepeerdns
+defaultroute
+persist
+noauth
+/dev/ttyACM0 9600
+connect 'chat -v -f /etc/ppp/chat/hologram.chat'
