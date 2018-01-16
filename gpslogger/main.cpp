@@ -21,6 +21,13 @@ static FileWriter* g_fileWriter = nullptr;
 
 void exited()
 {
+	if (g_fileWriter)
+	{
+		Logger::GetSingleton()->Write("Closing file writer...", LogLevel::Information);
+		delete g_fileWriter;
+		g_fileWriter = nullptr;
+	}
+
 	if (g_ppsThread != 0)
 	{
 		Logger::GetSingleton()->Write("Waiting for PPS thread to exit...", LogLevel::Information);
