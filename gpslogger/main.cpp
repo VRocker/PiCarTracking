@@ -11,11 +11,13 @@
 #include "../shared/gpsutils.h"
 #include <pthread.h>
 #include "ublox/Ublox.h"
+#include "FileWriter.h"
 
 static bool g_isRunning = true;
 
 static shmLocation* g_locationShm = nullptr;
 static pthread_t g_ppsThread = 0;
+static FileWriter* g_fileWriter = nullptr;
 
 void exited()
 {
@@ -127,6 +129,17 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	{
+		time_t startTime;
+		time(&startTime);
+
+		char fileName[128] = { 0 };
+		sprintf(fileName, "/gpsdata/logs/%u.log", startTime);
+		// Open the file to store the GPS data
+		g_fileWriter = new FileWriter(fileName);
+	}
+
+
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
@@ -186,6 +199,9 @@ int main(int argc, char* argv[])
 							g_rmcMsg = new GprmcMessage(*rmcMsg);
 							g_rmcMessageValid = true;
 						}
+
+						// Write to the GPS log
+						g_fileWriter->WriteLine(msgbuf, i);
 
 						/*if (SerialHandler::GetSingleton()->WaitForPPS())
 						{
