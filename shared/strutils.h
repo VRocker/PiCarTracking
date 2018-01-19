@@ -22,6 +22,15 @@ extern "C" {
 	*/
 	unsigned int str_equal(const char* str1, const char* str2);
 
+	/**	Compares 2 strings to check if they are the same.
+	*	Differs from strcmp as it doesn't count where the strings are different
+	*	@param str1 The string to compare with
+	*	@param str2 The string to compare to
+	*	@retval 1 Strings are equal
+	*	@retval 0 Strings are NOT equal
+	*/
+	unsigned int str_equal_nocase(const char* str1, const char* str2);
+
 	/**	str_cpy is a _safe_ function for copying strings from 1 location to the other.
 	*	@param dest The destination buffer
 	*	@param source The source string to copy from

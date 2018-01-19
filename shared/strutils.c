@@ -11,6 +11,31 @@ unsigned int str_equal(const char* str1, const char* str2)
 	return 0;
 }
 
+unsigned int str_equal_nocase(const char* str1, const char* str2)
+{
+	const char* p1 = str1;
+	const char* p2 = str2;
+	unsigned char c1, c2;
+
+	if (!*p1)
+		return 0;
+
+	do
+	{
+		c1 = tolower(*p1);
+
+		if (!c1)
+			return 1;
+
+		c2 = tolower(*p2);
+
+		++p1;
+		++p2;
+	} while (c1 == c2);
+
+	return 0;
+}
+
 void str_cpy(char* dest, const char* source, size_t size)
 {
 	if (source)
