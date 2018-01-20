@@ -1,0 +1,27 @@
+#!/bin/sh
+
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
+export PATH
+# These variables are for the use of the scripts run by run-parts
+PPP_IFACE="$1"
+PPP_TTY="$2"
+PPP_SPEED="$3"
+PPP_LOCAL="$4"
+PPP_REMOTE="$5"
+PPP_IPPARAM="$6"
+export PPP_IFACE PPP_TTY PPP_SPEED PPP_LOCAL PPP_REMOTE PPP_IPPARAM
+
+
+# as an additional convenience, $PPP_TTYNAME is set to the tty name,
+# stripped of /dev/ (if present) for easier matching.
+PPP_TTYNAME=`/usr/bin/basename "$2"`
+export PPP_TTYNAME 
+
+# Main Script starts here
+# Run the scripts in if-up.dy
+[ -d /etc/ppp/ip-up.d ] && {
+        for SCRIPT in /etc/ppp/ip-up.d/*
+        do
+                [ -x "$SCRIPT" ] && "$SCRIPT"
+        done
+}

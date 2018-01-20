@@ -1,0 +1,8 @@
+#/bin/sh
+
+# Add some default routes (Hologram SDK adds these)
+route add -net 10.176.0.0/16 dev "$PPP_IFACE"
+route add -net 10.254.0.0/16 dev "$PPP_IFACE"
+
+# Add the route to cloudsocket.hologram.io
+route add -net 23.253.146.203/32 dev "$PPP_IFACE"
