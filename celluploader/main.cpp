@@ -77,14 +77,6 @@ int main(int argc, char* argv[])
 	system("/usr/sbin/pppd call hologram.provider");
 	Logger::GetSingleton()->Write("Connected!", LogLevel::Information);
 
-	Logger::GetSingleton()->Write("Opening serial port...", LogLevel::Information);
-	// Serial port lives on ttyS0 on the pi zero
-	if (!SerialHandler::GetSingleton()->OpenPort("/dev/ttyACM1"))
-	{
-		Logger::GetSingleton()->Write("Failed to open serial port. Exiting...", LogLevel::Error);
-		return 1;
-	}
-
 	SerialHandler::GetSingleton()->FlushPort();
 
 	// How often should we report the coordinates? Default is 5 minutes
@@ -105,11 +97,13 @@ int main(int argc, char* argv[])
 	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
 
 	// Wait until the GPS has a valid lock on the satellites
+	Logger::GetSingleton()->Write("Waiting for initial GPS lock...", LogLevel::Information);
 	waitForInitialFix();
+	Logger::GetSingleton()->Write("GPS locked! Starting main loop...", LogLevel::Information);
 
 	while (g_isRunning)
 	{
-		Logger::GetSingleton()->Write("Tick.", LogLevel::Information);
+		Logger::GetSingleton()->Write("Uploading data...", LogLevel::Information);
 
 		uploadData();
 
