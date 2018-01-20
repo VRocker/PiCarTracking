@@ -1,4 +1,4 @@
-OBJS=main.o ../shared/Logger.o ../shared/locationshm.o SerialHandler.o ../shared/strutils.o
+OBJS=main.o ../shared/Logger.o ../shared/locationshm.o SerialHandler.o ../shared/strutils.o ../shared/config.o
 LIBS=-lpthread
 BIN=celluploader.bin
 
