@@ -3,7 +3,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+template<>
+Config* ISingleton<Config>::m_singleton = nullptr;
+
 Config::Config(const char* fileName)
+	: m_file(nullptr)
 {
 	openFile(fileName);
 }
@@ -53,7 +57,7 @@ bool Config::ReadItem(const char* key, char* value, unsigned int valueSize)
 	return false;
 }
 
-bool Config::ReadItemInt(const char* key, int* value)
+bool Config::ReadItemInt(const char* key, unsigned int* value)
 {
 	if (!m_file)
 		return false;

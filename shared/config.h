@@ -6,6 +6,9 @@
 class Config : public ISingleton<Config>
 {
 public:
+	Config()
+		: m_file(nullptr)
+	{}
 	Config(const char* fileName);
 	~Config();
 
