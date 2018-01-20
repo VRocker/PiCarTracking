@@ -1,3 +1,4 @@
+#include "main.h"
 #include "../shared/Logger.h"
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,6 +13,9 @@ static shmLocation* g_gpsLocationShm = nullptr;
 
 void exited()
 {
+	Logger::GetSingleton()->Write("Uploading coordinates on exit...", LogLevel::Information);
+	uploadData();
+
 	system("kill `pidof pppd`");
 	Logger::GetSingleton()->Write("Terminating.", LogLevel::Information);
 	Logger::CleanupSingleton();
@@ -89,14 +93,39 @@ int main(int argc, char* argv[])
 		Logger::GetSingleton()->Write("Failed to read reporting interval. Using default...", LogLevel::Warning);
 	}
 
-	char msgbuf[64] = { 0 };
+	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
+
+	// Wait until the GPS has a valid lock on the satellites
+	waitForInitialFix();
 
 	while (g_isRunning)
 	{
 		Logger::GetSingleton()->Write("Tick.", LogLevel::Information);
 
+		uploadData();
+
 		sleep(reportingInterval);
 	}
 
 	return 0;
+}
+
+void waitForInitialFix()
+{
+	while (g_isRunning)
+	{
+		// Check if the GPS says it has a satellite lock
+		if (g_gpsLocationShm->valid)
+		{
+			// Exit the while loop, uploadData is the first thing done in the main loop
+			break;
+		}
+		// Wait for 1 second
+		sleep(1);
+	}
+}
+
+void uploadData()
+{
+
 }
