@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
 #include "../shared/locationshm.h"
 #include "SerialHandler.h"
 #include "../shared/config.h"
+#include "SocketHandler.h"
 
 static bool g_isRunning = true;
 
@@ -130,5 +132,16 @@ void waitForInitialFix()
 
 void uploadData()
 {
+	// Create TCP socket to cloudsocket.hologram.io and upload data
+	// echo '{"k":"<key>","d":"Test!","t":"test"}' | nc -i1 cloudsocket.hologram.io 9999
+	// k = Device key, d = Data, t = Tags
 
+	if (SocketHandler::GetSingleton()->Connect("cloudsocket.hologram.io", 9999))
+	{
+		char outBuffer[128] = { 0 };
+		sprintf(outBuffer, "{\"k\":\"%s\",\"d\":\"{%f,%f,%f}\",\"t\":\"location\"", g_deviceKey, g_gpsLocationShm->longitude, g_gpsLocationShm->latitude, g_gpsLocationShm->speed);
+		SocketHandler::GetSingleton()->Send(outBuffer, strlen(outBuffer));
+	}
+	else
+		Logger::GetSingleton()->Write("Failed to connect  to Hologram Cloud.", LogLevel::Error);
 }
