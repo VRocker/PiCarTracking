@@ -11,6 +11,8 @@ static bool g_isRunning = true;
 
 static shmLocation* g_gpsLocationShm = nullptr;
 
+static char g_deviceKey[64] = { 0 };
+
 void exited()
 {
 	Logger::GetSingleton()->Write("Uploading coordinates on exit...", LogLevel::Information);
@@ -91,6 +93,13 @@ int main(int argc, char* argv[])
 	if (!Config::GetSingleton()->ReadItemInt("ReportingInterval", &reportingInterval))
 	{
 		Logger::GetSingleton()->Write("Failed to read reporting interval. Using default...", LogLevel::Warning);
+	}
+
+	Logger::GetSingleton()->Write("Reading Hologram device key...", LogLevel::Information);
+	if (!Config::GetSingleton()->ReadItem("DeviceKey", g_deviceKey, sizeof(g_deviceKey)))
+	{
+		Logger::GetSingleton()->Write("Unable to read device key. Exiting...", LogLevel::Error);
+		return 1;
 	}
 
 	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
