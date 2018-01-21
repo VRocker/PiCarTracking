@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# Start the GPS logger daemon
+#
+
+case "$1" in
+   start)
+     echo -n "Starting gpslogger..."
+     start-stop-daemon -q -S -x /picar/bin/gpslogger.bin
+     echo "OK"
+     ;;
+   stop)
+     echo -n "Stopping gpslogger..."
+     start-stop-daemon -q -K -x /picar/bin/gpslogger
+     echo "OK"
+     ;;
+   reload)
+      echo -n "Reloading gpslogger..."
+      start-stop-daemon -q -K -s 1 -x /picar/bin/gpslogger
+      echo "OK"
+      ;;
+   restart)
+     echo "Restarting gpslogger..."
+     "$0" stop
+     "$0" start
+     ;;
+   *)
+     echo $"Usage: $0 {start|stop|restart|reload}"
+     exit 1
+esac
+
+exit $?
+
+

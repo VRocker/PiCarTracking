@@ -2,6 +2,7 @@
 #include "../shared/strutils.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 template<>
 Config* ISingleton<Config>::m_singleton = nullptr;
@@ -49,7 +50,7 @@ bool Config::ReadItem(const char* key, char* value, unsigned int valueSize)
 			if (str_equal_nocase(configKey, key))
 			{
 				str_cpy(value, pch, valueSize);
-				return 0;
+				return true;
 			}
 		}
 	}

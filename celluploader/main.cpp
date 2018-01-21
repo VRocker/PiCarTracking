@@ -101,6 +101,7 @@ int main(int argc, char* argv[])
 		Logger::GetSingleton()->Write("Unable to read device key. Exiting...", LogLevel::Error);
 		return 1;
 	}
+	Logger::GetSingleton()->Write("Hologram device key set to: %s", LogLevel::Information, g_deviceKey);
 
 	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
 
@@ -108,6 +109,7 @@ int main(int argc, char* argv[])
 	Logger::GetSingleton()->Write("Waiting for initial GPS lock...", LogLevel::Information);
 	waitForInitialFix();
 	Logger::GetSingleton()->Write("GPS locked! Starting main loop...", LogLevel::Information);
+
 
 	while (g_isRunning)
 	{
@@ -156,11 +158,15 @@ void uploadData()
 	if (SocketHandler::GetSingleton()->Connect("cloudsocket.hologram.io", 9999))
 	{
 		char outBuffer[128] = { 0 };
-		sprintf(outBuffer, "{\"k\":\"%s\",\"d\":\"{%f,%f,%f}\",\"t\":\"location\"", g_deviceKey, g_gpsLocationShm->longitude, g_gpsLocationShm->latitude, g_gpsLocationShm->speed);
+		sprintf(outBuffer, "{\"k\":\"%s\",\"d\":\"{%f,%f,%f}\",\"t\":\"location\"}", g_deviceKey, g_gpsLocationShm->longitude, g_gpsLocationShm->latitude, g_gpsLocationShm->speed);
 		SocketHandler::GetSingleton()->Send(outBuffer, strlen(outBuffer));
+
+		Logger::GetSingleton()->Write("Sent %s.", LogLevel::Information, outBuffer);
 	}
 	else
 		Logger::GetSingleton()->Write("Failed to connect  to Hologram Cloud.", LogLevel::Error);
+
+	SocketHandler::GetSingleton()->Disconnect();
 }
 
 bool checkForPPPConnection()

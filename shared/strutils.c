@@ -1,5 +1,6 @@
 #include "strutils.h"
 #include <string.h>
+#include <ctype.h>
 
 unsigned int str_equal(const char* str1, const char* str2)
 {
