@@ -31,6 +31,9 @@
 #::ctrlaltdel:/sbin/reboot
 
 # Stuff to do before rebooting
+# Save the NTP drift file
+null::shutdown:/picar/sbin/savetoflash /picar/etc/ntp.drift
+
 ::shutdown:/etc/init.d/rcK
 ::shutdown:/sbin/swapoff -a
 ::shutdown:/bin/umount -a -r
