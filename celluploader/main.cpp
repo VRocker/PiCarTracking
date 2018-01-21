@@ -11,6 +11,7 @@
 
 static bool g_isRunning = true;
 
+static time_t g_lastLocationTime = 0;
 static shmLocation* g_gpsLocationShm = nullptr;
 
 static char g_deviceKey[64] = { 0 };
@@ -110,11 +111,22 @@ int main(int argc, char* argv[])
 
 	while (g_isRunning)
 	{
-		Logger::GetSingleton()->Write("Uploading data...", LogLevel::Information);
+		if ( (g_gpsLocationShm->lastUpdated != g_lastLocationTime) && (g_gpsLocationShm->valid))
+		{
+			// Make sure the data has changed since the last time we uploaded and that it's currently valid
+			Logger::GetSingleton()->Write("Uploading data...", LogLevel::Information);
 
-		uploadData();
+			uploadData();
+			g_lastLocationTime = g_gpsLocationShm->lastUpdated;
 
-		sleep(reportingInterval);
+			sleep(reportingInterval);
+		}
+		else
+		{
+			// The data hasn't changed, keep trying every second until it has
+			// TODO: If the data is invalid for too long, send the 3g modem coordinates
+			sleep(1);
+		}
 	}
 
 	return 0;
