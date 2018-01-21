@@ -80,7 +80,6 @@ void* ppsThread(void* threadId)
 		{
 			if ((g_rmcMessageValid) && (g_rmcMsg))
 			{
-				printf("[2] Setting time to %u - %f...\n", g_rmcMsg->Date(), g_rmcMsg->Timestamp());
 				// Update the NTP shared memory segment
 				NtpUpdater::GetSingleton()->SetNTPTime(g_rmcMsg->Date(), g_rmcMsg->Timestamp());
 
@@ -150,6 +149,8 @@ int main(int argc, char* argv[])
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
+	// According to the ublox specification, on startup we should send aid, eph and some other data to help the GPS gain a lock.
+	// TODO: We shouldd do this here, and save the data on exit
 	//ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
 
 	// Setup PPS thread
@@ -206,13 +207,34 @@ int main(int argc, char* argv[])
 
 						if ((!g_rmcMsg) && (!g_rmcMessageValid))
 						{
-							printf("[1] Setting time to %u - %f...\n", rmcMsg->Date(), rmcMsg->Timestamp());
 							g_rmcMsg = new GprmcMessage(*rmcMsg);
 							g_rmcMessageValid = true;
 						}
 
 						// Write to the GPS log
-						g_fileWriter->WriteLine(msgbuf, i);
+						// Maybe serialize this to store the struct in byte form
+						// 27 bytes in the struct. Make some header thing to give some info on the logs
+						// Just need to make a proepr writer and a parser
+						{
+							char outBuffer[255] = { 0 };
+							unsigned int len = sprintf(outBuffer, "$GPRMC,%f,%c,%f,%c,%f,%c,%f,%f,%u,%f,%c*%u\r\n",
+								rmcMsg->Timestamp(),
+								(rmcMsg->HasFix() ? 'A' : 'V'),
+								rmcMsg->Latitude(),
+								rmcMsg->LatitudeDirection(),
+								rmcMsg->Longitude(),
+								rmcMsg->LongitudeDirection(),
+								rmcMsg->Speed(),
+								rmcMsg->Heading(),
+								rmcMsg->Date(),
+								rmcMsg->Variation(),
+								rmcMsg->VariationDirection(),
+								rmcMsg->Checksum()
+								);
+
+							g_fileWriter->WriteLine(outBuffer, len);
+						}
+						
 
 						/*if (SerialHandler::GetSingleton()->WaitForPPS())
 						{
@@ -230,7 +252,7 @@ int main(int argc, char* argv[])
 				{
 					// GPGGA String
 					GpggaMessage* ggaMsg = (GpggaMessage*)msg;
-					printf("Sats in view: %u\n", ggaMsg->SatsInView());
+					//printf("Sats in view: %u\n", ggaMsg->SatsInView());
 
 				}
 				break;
@@ -265,6 +287,8 @@ int main(int argc, char* argv[])
 				ublox::Ublox::GetSingleton()->ParseUbloxMessage(msgbuf, payloadLen + 8);
 			}
 		}
+
+		sleep(0);
 	}
 
 	return 0;

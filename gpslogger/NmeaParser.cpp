@@ -44,7 +44,7 @@ INmeaMessage* NmeaParser::ParseMessage(char* msg)
 	{
 		// GPRMC String
 		GprmcMessage* tmp = new GprmcMessage();
-		if (tmp->Parse(context))
+		if (tmp->Parse(context, dataChecksum))
 			ret = tmp;
 		else
 			delete tmp;
@@ -61,7 +61,7 @@ INmeaMessage* NmeaParser::ParseMessage(char* msg)
 	{
 		// GPGGA String
 		GpggaMessage* tmp = new GpggaMessage();
-		if (tmp->Parse(context))
+		if (tmp->Parse(context, dataChecksum))
 			ret = tmp;
 		else
 			delete tmp;

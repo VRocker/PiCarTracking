@@ -6,7 +6,7 @@
 // $GPGGA,,,,,,0,00,99.99,,,,,,*48
 
 
-bool GpggaMessage::Parse(char* msg)
+bool GpggaMessage::Parse(char* msg, char* checksum)
 {
 	//printf("Parsing GPGGA string... [%s]\n", msg);
 

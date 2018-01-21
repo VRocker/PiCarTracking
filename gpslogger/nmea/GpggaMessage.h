@@ -14,7 +14,7 @@ public:
 
 	~GpggaMessage() {}
 
-	bool Parse(char* msg);
+	bool Parse(char* msg, char* checksum);
 
 public:
 	float Timestamp() const { return m_UTCTime; }
