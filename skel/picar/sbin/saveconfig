@@ -11,11 +11,11 @@ if mount -o rw $DEVICE $MNT ; then
 	echo -n "Saving configuration to flash..."
 
 	# Save any pi config files
-	$(dirname $0)/cpmkdir /picar/etc/ $MNT/conf/picar/etc/
+	$(dirname $0)/cpmkdir /picar/etc/ $MNT/picar/etc/
 
 	# Save the passwd and shadow files
-	$(dirname $0)/cpmkdir /etc/passwd $MNT/conf/picar/passwd
-	$(dirname $0)/cpmkdir /etc/shadow $MNT/conf/picar/shadow
+	$(dirname $0)/cpmkdir /etc/passwd $MNT/picar/passwd
+	$(dirname $0)/cpmkdir /etc/shadow $MNT/picar/shadow
 
 	# Save the SSH keys
 	$(dirname $0)/cpmkdir /root/.ssh/authorized_keys $MNT/conf/root/.ssh/authorized_keys

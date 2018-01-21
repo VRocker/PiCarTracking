@@ -4,7 +4,7 @@ MNT="/mnt"
 DEVICE="/dev/mmcblk0p2"
 
 if mount -o ro $DEVICE $MNT ; then
-	cp -Rf $MNT/conf/* /
+	cp -Rf $MNT/* /
 fi
 
 umount $MNT
