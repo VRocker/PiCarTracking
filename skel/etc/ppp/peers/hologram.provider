@@ -1,6 +1,5 @@
 noipdefault
 usepeerdns
-defaultroute
 persist
 noauth
 /dev/ttyACM0 9600
