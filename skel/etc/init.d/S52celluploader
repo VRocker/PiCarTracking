@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# Start the Cell Uploader process
+#
+
+case "$1" in
+   start)
+     echo -n "Starting celluploader..."
+     start-stop-daemon -q -S -x /picar/bin/celluploader.bin
+     echo "OK"
+     ;;
+   stop)
+     echo -n "Stopping celluploader..."
+     start-stop-daemon -q -K -x /picar/bin/celluploader.bin
+     echo "OK"
+     ;;
+   reload)
+      echo -n "Reloading celluploader..."
+      start-stop-daemon -q -K -s 1 -x /picar/bin/celluploader.bin
+      echo "OK"
+      ;;
+   restart)
+     echo "Restarting celluploader..."
+     "$0" stop
+     "$0" start
+     ;;
+   *)
+     echo $"Usage: $0 {start|stop|restart|reload}"
+     exit 1
+esac
+
+exit $?
+
+
