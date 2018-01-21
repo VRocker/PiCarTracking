@@ -77,6 +77,11 @@ int main(int argc, char* argv[])
 	Logger::GetSingleton()->Write("Connecting to cellular network...", LogLevel::Information);
 	// I know... using system() is bad practice but it does the job (and its not like this accepts user input...)
 	system("/usr/sbin/pppd call hologram.provider");
+
+	// Wait for a successful connection before proceeding
+	while (!checkForPPPConnection())
+		sleep(1);
+
 	Logger::GetSingleton()->Write("Connected!", LogLevel::Information);
 
 	SerialHandler::GetSingleton()->FlushPort();
@@ -144,4 +149,25 @@ void uploadData()
 	}
 	else
 		Logger::GetSingleton()->Write("Failed to connect  to Hologram Cloud.", LogLevel::Error);
+}
+
+bool checkForPPPConnection()
+{
+	char buffer[64] = { 0 };
+	bool retVal = false;
+
+	FILE* pNet = popen("ifconfig | grep 'ppp0'", "r");
+	if (pNet)
+	{
+		if (fgets(buffer, sizeof(buffer), pNet))
+		{
+			if (*buffer)
+				retVal = true;
+		}
+
+		pclose(pNet);
+		pNet = 0;
+	}
+
+	return retVal;
 }
