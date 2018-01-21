@@ -152,6 +152,9 @@ void uploadData()
 	// echo '{"k":"<key>","d":"Test!","t":"test"}' | nc -i1 cloudsocket.hologram.io 9999
 	// k = Device key, d = Data, t = Tags
 
+	if (!*g_deviceKey)
+		return;
+
 	if (SocketHandler::GetSingleton()->Connect("cloudsocket.hologram.io", 9999))
 	{
 		char outBuffer[128] = { 0 };
