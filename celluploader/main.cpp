@@ -5,7 +5,6 @@
 #include <signal.h>
 #include <string.h>
 #include "../shared/locationshm.h"
-#include "SerialHandler.h"
 #include "../shared/config.h"
 #include "SocketHandler.h"
 
@@ -84,8 +83,6 @@ int main(int argc, char* argv[])
 		sleep(1);
 
 	Logger::GetSingleton()->Write("Connected!", LogLevel::Information);
-
-	SerialHandler::GetSingleton()->FlushPort();
 
 	// How often should we report the coordinates? Default is 5 minutes
 	unsigned int reportingInterval = 300;
