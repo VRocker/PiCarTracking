@@ -194,10 +194,14 @@ int main(int argc, char* argv[])
 					{
 						{
 							float lat = 0.0f, lon = 0.0f;
-							convertNMEAToLatLon(rmcMsg->Latitude(), rmcMsg->LatitudeDirection(), rmcMsg->Longitude(), rmcMsg->LongitudeDirection(), &lat, &lon);
-							addLocation(g_locationShm, lat, lon, rmcMsg->Speed());
+							float speedInMps = 0.0f;
+							convertSpeedToMPS(rmcMsg->Speed(), &speedInMps);
 
-							printf("Setting location data to Lat: %f, Lon: %f\n", lat, lon);
+							convertNMEAToLatLon(rmcMsg->Latitude(), rmcMsg->LatitudeDirection(), rmcMsg->Longitude(), rmcMsg->LongitudeDirection(), &lat, &lon);
+							// Add the lat, long and speed (in m/s) to the shared memory block
+							addLocation(g_locationShm, lat, lon, speedInMps);
+
+							//printf("Setting location data to Lat: %f, Lon: %f\n", lat, lon);
 						}
 
 						if ((!g_rmcMsg) && (!g_rmcMessageValid))

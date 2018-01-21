@@ -27,3 +27,14 @@ void convertNMEAToLatLon(float nmeaLat, char ns, float nmeaLon, char ew, float* 
 	*outLat = newLat;
 	*outLon = newLon;
 }
+
+void convertSpeedToKMH(float speedInKnots, float* speedInKmh)
+{
+	*speedInKmh = (speedInKnots * 1.852f);
+}
+
+void convertSpeedToMPS(float speedInKnots, float* speedInMps)
+{
+	*speedInMps = (speedInKnots * 0.514444444444f);
+}
+
