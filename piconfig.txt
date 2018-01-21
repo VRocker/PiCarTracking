@@ -1,0 +1,11 @@
+kernel=zImage
+
+gpu_mem=32
+
+dtoverlay=i2c-rtc,ds1307,dwc-otg
+dtparam=i2c_arm=on
+dtparam=i2c1=on
+dtparam=i2c1_baudrate=10000
+dtoverlay=pps-gpio,gpiopin=18
+
+enable_uart=1
