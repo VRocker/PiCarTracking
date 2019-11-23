@@ -57,6 +57,7 @@ namespace ublox
 		UseLLA = 0x20,
 		AltitudeInvalid = 0x40,
 		UsePrevTimePulse = 0x80,
+		TimeInUTC = 0x400
 	};
 
 #pragma pack(push, 1)
@@ -78,6 +79,9 @@ namespace ublox
 	struct AidIni
 	{
 		AidIni()
+			: ecefXorLat(0), ecefYorLon(0), ecefZorAlt(0), position_accuracy(0), time_configuration(0), week_number(0), 
+			time_of_week(0), time_of_week_ns(0), time_accuracy_ms(0), time_accuracy_ns(0), clock_drift_or_freq(0), clock_drift_or_freq_accuracy(0),
+			flags(0)
 		{
 			header.messageClass = MessageClasses::Aid;
 			header.messageId = (uint8_t)MessageIDAid::Ini;

@@ -21,6 +21,9 @@ namespace ublox
 		void ParseUbloxMessage(char* msgBuffer, size_t msgLength);
 
 	public:
+		bool SendAidIni(AidIni &iniMsg);
+
+	public:
 		void SetCallbackAidIni(AidIniCallback callback) { m_callbackAidIni = callback; }
 
 	private:

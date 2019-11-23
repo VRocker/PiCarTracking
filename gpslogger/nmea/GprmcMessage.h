@@ -44,6 +44,6 @@ private:
 	char m_ew;
 	char m_varDirection;
 
-	char m_checksum[4];
+	char m_checksum[2];
 };
 

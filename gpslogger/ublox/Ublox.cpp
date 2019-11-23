@@ -56,9 +56,30 @@ namespace ublox
 					ParseAidIniMessage(msgBuffer, header.payloadLength + 8);
 				}
 				break;
+
+				default:
+					printf("Unknown UBLOX message received: [%u] '%s'", header.messageClass, msgBuffer);
 				}
 			}
 		}
+	}
+
+	bool Ublox::SendAidIni(AidIni &iniMsg)
+	{
+		char message[56] = { 0 };
+
+		memcpy(message, &iniMsg, 54);
+
+		uint8_t* msgPtr = (uint8_t*)&message;
+		CalculateChecksum(msgPtr + 2, 52, msgPtr + 54);
+
+		for (int i = 0; i < 56; i++)
+		{
+			printf("0x%.2x ", message[i]);
+		}
+		printf("\n");
+
+		return SerialHandler::GetSingleton()->WritePort((char*)msgPtr, 56);
 	}
 
 	void Ublox::CalculateChecksum(uint8_t * in, size_t len, uint8_t * out)
