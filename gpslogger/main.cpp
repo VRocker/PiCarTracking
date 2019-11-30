@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include "ublox/Ublox.h"
 #include "FileWriter.h"
+#include <sys/time.h>
 
 static bool g_isRunning = true;
 
@@ -145,13 +146,71 @@ int main(int argc, char* argv[])
 		g_fileWriter = new FileWriter(fileName);
 	}
 
-
 	// Flush the port so we don't end up with old crap
 	SerialHandler::GetSingleton()->FlushPort();
 
-	// According to the ublox specification, on startup we should send aid, eph and some other data to help the GPS gain a lock.
+	{
+		float modemLong = 0.0f, modemLat = 0.0f;
+		{
+			struct shmLocation* modemLocation = getShmLocation(LocationUnitIDs::Modem);
+			if (modemLocation)
+			{
+				unsigned int waitTime = 0;
+				while ((!modemLocation->valid) && (waitTime++ < 60))
+					sleep(1);
+
+				modemLong = modemLocation->longitude;
+				modemLat = modemLocation->latitude;
+
+				Logger::GetSingleton()->Write("Obtained coordinates from modem: %f - %f", LogLevel::Information, modemLong, modemLat);
+			}
+		}
+
+		// According to the ublox specification, on startup we should send aid, eph and some other data to help the GPS gain a lock.
+
+		{
+			struct tm* tmpTime;
+			time_t now = time(0);
+			tmpTime = gmtime(&now);
+
+			uint32_t gpsTime = now - 315532800L;
+			time_t weekTime = (tmpTime->tm_wday * 86400) + (tmpTime->tm_hour * 3600) + (tmpTime->tm_min * 60) + tmpTime->tm_sec;
+			uint32_t weekNumber = (gpsTime - weekTime) / 604800;
+
+			ublox::AidIni initialMessage;
+			uint32_t flags = 0;
+			if (modemLong != 0.0f)
+			{
+				initialMessage.ecefYorLon = modemLong;
+				initialMessage.ecefXorLat = modemLat;
+				initialMessage.ecefZorAlt = 0.0f;
+
+				flags &= (uint32_t)ublox::MessageFlagsAidIni::UseLLA & (uint32_t)ublox::MessageFlagsAidIni::AltitudeInvalid;
+			}
+			if (tmpTime->tm_year > 100)
+			{
+
+				initialMessage.time_configuration = 1;
+				initialMessage.week_number = weekNumber;
+				initialMessage.time_of_week = weekTime * 1000;
+				initialMessage.time_of_week_ns = 0;
+
+				flags &= (uint32_t)ublox::MessageFlagsAidIni::TimeValid;
+			}
+
+			initialMessage.flags = flags;
+
+			ublox::Ublox::GetSingleton()->SendAidIni(initialMessage);
+
+			Logger::GetSingleton()->Write("Sent AID message to GPS.", LogLevel::Information);
+		}
+	}
+
 	// TODO: We shouldd do this here, and save the data on exit
-	//ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
+	// We should also wait for a lock and save the aid stuff
+	ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Ini);
+	// Ask for EPH stuff for testing
+	ublox::Ublox::GetSingleton()->PollMessage(ublox::MessageClasses::Aid, (uint8_t)ublox::MessageIDAid::Eph);
 
 	// Setup PPS thread
 	if (pthread_create(&g_ppsThread, NULL, ppsThread, NULL) > 0)
@@ -270,6 +329,7 @@ int main(int argc, char* argv[])
 		}
 		else if (*msgbuf == 0xB5)
 		{
+			Logger::GetSingleton()->Write("Received UBLOX message.", LogLevel::Information);
 			// Received UBX message
 			// Read 6 bytes to construct the header
 			// Read payload_length bytes to get the payload
