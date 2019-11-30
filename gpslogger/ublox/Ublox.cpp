@@ -53,12 +53,27 @@ namespace ublox
 				{
 				case MessageClasses::Aid:
 				{
-					ParseAidIniMessage(msgBuffer, header.payloadLength + 8);
+					ParseAidMessage(header, msgBuffer, header.payloadLength + 8);
 				}
 				break;
+
+				default:
+					printf("Unknown UBLOX message received: [%u] '%s'", header.messageClass, msgBuffer);
 				}
 			}
 		}
+	}
+
+	bool Ublox::SendAidIni(AidIni &iniMsg)
+	{
+		char message[56] = { 0 };
+
+		memcpy(message, &iniMsg, 54);
+
+		uint8_t* msgPtr = (uint8_t*)&message;
+		CalculateChecksum(msgPtr + 2, 52, msgPtr + 54);
+
+		return SerialHandler::GetSingleton()->WritePort((char*)msgPtr, 56);
 	}
 
 	void Ublox::CalculateChecksum(uint8_t * in, size_t len, uint8_t * out)
@@ -74,6 +89,20 @@ namespace ublox
 
 		out[0] = (a & 0xFF);
 		out[1] = (b & 0xFF);
+	}
+
+	void Ublox::ParseAidMessage(const UBloxHeader& header, char* msgBuffer, size_t msgLength)
+	{
+		switch ((MessageIDAid)header.messageId)
+		{
+		case MessageIDAid::Ini:
+			ParseAidIniMessage(msgBuffer, msgLength);
+			break;
+
+		case MessageIDAid::Eph:
+			ParseAidEphMessage(msgBuffer, msgLength);
+			break;
+		}
 	}
 
 	void Ublox::ParseAidIniMessage(char * msgBuffer, size_t msgLength)
@@ -103,6 +132,27 @@ namespace ublox
 
 		if (m_callbackAidIni)
 			m_callbackAidIni(iniMessage);
+	}
+
+	void Ublox::ParseAidEphMessage(char* msgBuffer, size_t msgLength)
+	{
+		AidEph ephMessage;
+		if (msgLength < 18)
+		{
+			printf("Not a valid AID-EPH message. [%u]", msgLength);
+			return;
+		}
+
+		size_t lengthToCopy = msgLength;
+		if (lengthToCopy > sizeof(ephMessage))
+			lengthToCopy = sizeof(ephMessage);
+
+		memcpy(&ephMessage, msgBuffer, lengthToCopy);
+
+		printf("AID EPH: \n");
+		printf("Length: %u\n", ephMessage.header.payloadLength);
+		printf("SVID: %u\n", ephMessage.svid);
+		printf("HOW: %u\n", ephMessage.how);
 	}
 
 }

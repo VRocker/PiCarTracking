@@ -21,13 +21,18 @@ namespace ublox
 		void ParseUbloxMessage(char* msgBuffer, size_t msgLength);
 
 	public:
+		bool SendAidIni(AidIni &iniMsg);
+
+	public:
 		void SetCallbackAidIni(AidIniCallback callback) { m_callbackAidIni = callback; }
 
 	private:
 		void CalculateChecksum(uint8_t* in, size_t len, uint8_t* out);
 
 	private:
+		void ParseAidMessage(const UBloxHeader& header, char* msgBuffer, size_t length);
 		void ParseAidIniMessage(char* msgBuffer, size_t msgLength);
+		void ParseAidEphMessage(char* msgBuffer, size_t msgLength);
 
 	private:
 		AidIniCallback m_callbackAidIni;

@@ -57,6 +57,7 @@ namespace ublox
 		UseLLA = 0x20,
 		AltitudeInvalid = 0x40,
 		UsePrevTimePulse = 0x80,
+		TimeInUTC = 0x400
 	};
 
 #pragma pack(push, 1)
@@ -78,6 +79,9 @@ namespace ublox
 	struct AidIni
 	{
 		AidIni()
+			: ecefXorLat(0), ecefYorLon(0), ecefZorAlt(0), position_accuracy(0), time_configuration(0), week_number(0), 
+			time_of_week(0), time_of_week_ns(0), time_accuracy_ms(0), time_accuracy_ns(0), clock_drift_or_freq(0), clock_drift_or_freq_accuracy(0),
+			flags(0)
 		{
 			header.messageClass = MessageClasses::Aid;
 			header.messageId = (uint8_t)MessageIDAid::Ini;
@@ -101,4 +105,22 @@ namespace ublox
 		uint8_t checksum[2];
 	};
 #pragma pack(pop)
+
+#pragma pack(push, 1)
+	struct AidEph
+	{
+		AidEph()
+			: svid(0), how(0)
+		{
+			header.messageClass = MessageClasses::Aid;
+			header.messageId = (uint8_t)MessageIDAid::Eph;
+			header.payloadLength = 0;
+		}
+		UBloxHeader header;
+
+		uint32_t svid; //!< SV ID for which this ephemeris data is (ValidRange: 1 .. 32).
+		uint32_t how; //!< Hand-Over Word of first Subframe. This isrequired if data is sent to the receiver.0 indicates that no Ephemeris Data is following
+	};
+#pragma pack(pop)
+
 };
