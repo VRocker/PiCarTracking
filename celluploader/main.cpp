@@ -7,11 +7,14 @@
 #include "../shared/locationshm.h"
 #include "../shared/config.h"
 #include "SocketHandler.h"
+#include "ATLocHandler.h"
 
 static bool g_isRunning = true;
 
 static time_t g_lastLocationTime = 0;
 static shmLocation* g_gpsLocationShm = nullptr;
+
+static float g_longitude = 0.0f, g_latitude = 0.0f;
 
 static char g_deviceKey[64] = { 0 };
 
@@ -74,6 +77,23 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
+	{
+		Logger::GetSingleton()->Write("Attempting to locate...", LogLevel::Information);
+		if (!ATLocHandler::GetSingleton()->Setup("/dev/ttyACM0"))
+		{
+			Logger::GetSingleton()->Write("Failed to setup ATLoc stuff.", LogLevel::Error);
+			return 1;
+		}
+
+		// Grab location and date info from the network.
+		Logger::GetSingleton()->Write("Grabbing location data from network...", LogLevel::Information);
+		float initialLong = 0.0f, initialLat = 0.0f;
+		std::tie(initialLat, initialLong) = ATLocHandler::GetSingleton()->GrabNetworkLocation();
+		g_longitude = initialLong;
+		g_latitude = initialLat;
+	}
+
 	Logger::GetSingleton()->Write("Connecting to cellular network...", LogLevel::Information);
 	// I know... using system() is bad practice but it does the job (and its not like this accepts user input...)
 	system("/usr/sbin/pppd call hologram.provider");
@@ -100,7 +120,8 @@ int main(int argc, char* argv[])
 	}
 	Logger::GetSingleton()->Write("Hologram device key set to: %s", LogLevel::Information, g_deviceKey);
 
-	// TODO: Upload initial coordinates from the Nova based on the 3g connection so we have some coordinates to work with
+	Logger::GetSingleton()->Write("Sending initial location based on 3G modem.", LogLevel::Information);
+	uploadData();
 
 	// Wait until the GPS has a valid lock on the satellites
 	Logger::GetSingleton()->Write("Waiting for initial GPS lock...", LogLevel::Information);
@@ -114,6 +135,8 @@ int main(int argc, char* argv[])
 		{
 			// Make sure the data has changed since the last time we uploaded and that it's currently valid
 			Logger::GetSingleton()->Write("Uploading data...", LogLevel::Information);
+			g_longitude = g_gpsLocationShm->longitude;
+			g_latitude = g_gpsLocationShm->latitude;
 
 			uploadData();
 			g_lastLocationTime = g_gpsLocationShm->lastUpdated;
@@ -158,7 +181,7 @@ void uploadData()
 	if (SocketHandler::GetSingleton()->Connect("cloudsocket.hologram.io", 9999))
 	{
 		char outBuffer[128] = { 0 };
-		sprintf(outBuffer, "{\"k\":\"%s\",\"d\":\"{%f,%f,%f}\",\"t\":\"location\"}", g_deviceKey, g_gpsLocationShm->longitude, g_gpsLocationShm->latitude, g_gpsLocationShm->speed);
+		sprintf(outBuffer, "{\"k\":\"%s\",\"d\":\"{%f,%f,%f}\",\"t\":\"location\"}", g_deviceKey, g_longitude, g_latitude, g_gpsLocationShm->speed);
 		SocketHandler::GetSingleton()->Send(outBuffer, strlen(outBuffer));
 
 		Logger::GetSingleton()->Write("Sent %s.", LogLevel::Information, outBuffer);

@@ -12,7 +12,8 @@ public:
 	void ClosePort();
 
 	bool ReadPort(char* buffer, unsigned int bytes);
-	bool WritePort(char* buffer, unsigned int bytes);
+	bool ReadLine(char* buffer, unsigned int bytes);
+	bool WritePort(const char* buffer, unsigned int bytes);
 	void FlushPort(void);
 
 private:

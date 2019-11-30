@@ -67,20 +67,46 @@ bool SerialHandler::ReadPort(char* buffer, unsigned int bytes)
 	if (m_fd == -1)
 		return false;
 
-	for (unsigned int i = 0; i < bytes; i++)
-	{
-		if (read(m_fd, buffer + i, 1) == -1)
-			return false;
-	}
+	//ioctl(m_fd, FIONREAD, &bytes);
+
+	buffer[0] = 0;
+
+	if (read(m_fd, buffer, bytes) == -1)
+		return false;
 
 	return true;
 }
 
-bool SerialHandler::WritePort(char* buffer, unsigned int bytes)
+/*i = 1;
+			do
+			{
+				SerialHandler::GetSingleton()->ReadPort(msgbuf + i, 1);
+			} while ((msgbuf[i] != '\r') && (msgbuf[i++] != '\n') && (i < sizeof(msgbuf) - 1));
+			msgbuf[i] = 0;
+*/
+bool SerialHandler::ReadLine(char* buffer, unsigned int bytes)
 {
 	if (m_fd == -1)
 		return false;
 
+	unsigned int i = 0;
+	do
+	{
+		if (read(m_fd, buffer + i, 1) == -1)
+			return false;
+	} while ((buffer[i] != '\n') && (i++ < bytes - 1));
+
+	buffer[i] = 0;
+
+	return true;
+}
+
+bool SerialHandler::WritePort(const char* buffer, unsigned int bytes)
+{
+	if (m_fd == -1)
+		return false;
+
+	Logger::GetSingleton()->Write("Writing %u bytes: %s", LogLevel::Information, bytes, buffer);
 	if (write(m_fd, buffer, bytes) == -1)
 		return false;
 
